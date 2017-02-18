@@ -1,52 +1,71 @@
-* {
-    font-family: Menlo, Consolas, monospace;
-}
-
 html, body {
   height: 100%;
-  margin: 0px;
+  font-family: Menlo, monospace;
   display: flex;
   flex-flow: column;
 }
 
+h1 {
+    text-align: center;
+    font-size: 16px;
+    padding: 10px;
+}
+
 table {
     border-collapse: collapse;
-    font-size: 11px;
-    margin: auto;
-    margin-bottom: 30px;
+    margin: 40px auto 80px auto;
 }
 
 caption {
-    font-size: 14px;
-    padding: 20px 0px 25px 0px;
+    text-align: left;
+    font-size: 12px;
+    padding-bottom: 10px;
+    font-style: italic;
+}
+
+tr {
+    border-top: 1px solid black;
+    border-bottom: 1px solid black;
 }
 
 th {
-    font-size: 14px;
-    width: 120px;
+    font-size: 12px;
+}
+
+tr th:first-child {
+    font-weight: normal;
 }
 
 th, td {
-    text-align: right;
+    width: 120px;
     padding: 10px;
-    border: 1px solid black;
+    text-align: right;
+
 }
 
-table tr:first-of-type * {
-    border-top: none;
+/* Flex */
+
+.fx-mmc-main {
+    display: flex;
+    flex-direction: column;
 }
 
-table tr:last-of-type * {
-    border-bottom: none;
+.fx-mmc-max, .fx-mmc-min, .fx-mmc-val {
+    display: flex;
+    justify-content: flex-end;
 }
 
-table tr *:first-child {
-    border-left: none;
+.fx-mmc-val {
+    font-size: 18px;
+    padding-top: 5px;
+    padding-bottom: 5px;
 }
 
-table tr *:last-child {
-    border-right: none;
+.fx-mmc-max, .fx-mmc-min {
+    font-size: 10px;
 }
+
+/* Footer */
 
 .flex {
     flex: 1 1 auto;

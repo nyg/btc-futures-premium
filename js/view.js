@@ -1,108 +1,200 @@
-function updateTable(channel, amount) {
+var view = (function () {
 
-    var ccy = channel.match(/btc/) ? 'btc' : 'ltc'
+    var view = {}
 
-    if (channel.match(/trades/)) {
-        updateCell(ccy + '-price-cny', amount)
-    }
-    else if (channel.match(/index/)) {
-        updateCell(ccy + '-price-index', amount)
-    }
-    else if (channel.match(/this_week/)) {
-        updateAmounts(ccy, 'weekly', amount)
-    }
-    else if (channel.match(/next_week/)) {
-        updateAmounts(ccy, 'bi-weekly', amount)
-    }
-    else if (channel.match(/quarter/)) {
-        updateAmounts(ccy, 'quarterly', amount)
-    }
-    else {
-        console.log(channel)
+    view.newExchange = function (name) {
+
+        var table = ui.table(jnid(name)),
+            caption = ui.caption(name + ' (index: ')
+
+        caption.appendChild(ui.span(null, jnid(name, 'index')))
+        caption.insertAdjacentText('beforeend', ', min: ')
+        caption.appendChild(ui.span(null, jnid(name, 'index-min')))
+        caption.insertAdjacentText('beforeend', ', max: ')
+        caption.appendChild(ui.span(null, jnid(name, 'index-max')))
+        caption.insertAdjacentText('beforeend', ')')
+
+        table.appendChild(caption)
+        table.appendChild(ui.tr([
+            ui.th(),
+            ui.th('Vol 24h k$'),
+            ui.th('Last'),
+            ui.th('±'),
+            ui.th('%')
+        ]))
+
+        ui.id('exchanges').appendChild(table)
     }
 
-    if (ccy == 'btc' && channel.match(/quarter|trades/)) {
-        updatePageTitle()
+    view.newProduct = function (exchange, name) {
+
+        var product = ui.th(name),
+            baseId = jnid(exchange, name),
+            volume = ui.td(null, jnid(baseId, 'volume'))
+            price = minMaxCell(baseId, 'price'),
+            delta = minMaxCell(baseId, 'delta'),
+            deltap = minMaxCell(baseId, 'deltap'),
+            tr = ui.tr([ product, volume, price, delta, deltap ])
+
+        ui.id(jnid(exchange)).appendChild(tr)
+    }
+
+    view.update = function (exchange, product, property, newValue) {
+
+        // update volume, price or index
+        if (property == 'volume') {
+            var id = jnid(exchange, product, property),
+                oldValue = getValue(id)
+            setVolumeValue(id, newValue)
+            setValueStyle(id, oldValue, newValue)
+        }
+        else {
+            var id = jnid(exchange, product, property, 'value'),
+                oldValue = getValue(id)
+
+            setValue(id, newValue)
+            setValueStyle(id, oldValue, newValue)
+            setMinMaxValue(jnid(exchange, product, property), newValue)
+        }
+
+        // update delta & deltap
+        if (property == 'price' || property == 'index') {
+
+            var index = getValue(jnid(exchange, 'index')),
+                price = getValue(jnid(exchange, product, 'price', 'value')),
+                delta = price - index
+
+            view.update(exchange, product, 'delta', delta)
+            view.update(exchange, product, 'deltap', delta / index * 100)
+        }
+    }
+
+    view.updateIndex = function (exchange, newValue) {
+        var id = jnid(exchange, 'index'),
+            oldValue = getValue(id)
+        setValue(id, newValue)
+        setValueStyle(id, oldValue, newValue)
+        setMinMaxValue(id, newValue)
+    }
+
+    function minMaxCell (parentId, name) {
+
+        var baseId = jnid(parentId, name),
+            max = ui.span(null, jnid(baseId, 'max'), 'fx-mmc-max'),
+            value = ui.span(null, jnid(baseId, 'value'), 'fx-mmc-val'),
+            min = ui.span(null, jnid(baseId, 'min'), 'fx-mmc-min')
+
+        return ui.td([ ui.span([ max, value, min ], baseId, 'fx-mmc-main') ])
+    }
+
+    // gets the exact value from the span with given id
+    function getValue(id) {
+        return parseFloat(ui.id(id).getAttribute('exact-value'))
+    }
+
+    // updates the span with given id
+    function setValue(id, value, store) {
+
+        ui.id(id).textContent = value.toFixed(2)
+        ui.id(id).setAttribute('exact-value', value)
+
+        // only store if it's a min/max value
+        if (store != false && id.match(/min|max/)) {
+            storage.set(id, value)
+        }
+    }
+
+    function setVolumeValue(id, value) {
+        ui.id(id).textContent = Number(value.toFixed()).toLocaleString()
+    }
+
+    // colors the span with given id
+    function setValueStyle(id, value, newValue) {
+
+        if (newValue > value) {
+            ui.id(id).style.color = 'green'
+        }
+        else if (newValue < value) {
+            ui.id(id).style.color = 'red'
+        }
+    }
+
+    // updates the min/max values corresponding to the span with the given id
+    function setMinMaxValue(id, value) {
+
+        var minId = jnid(id, 'min'),
+            maxId = jnid(id, 'max'),
+            min = storage.get(minId),
+            max = storage.get(maxId)
+
+        if (!getValue(minId) || min == null || value < min) {
+            setValue(minId, value)
+        }
+
+        if (!getValue(maxId) || max == null || value > max) {
+            setValue(maxId, value)
+        }
+    }
+
+    // joins the given arguments, used for HTML ids
+    function jnid() {
+        return [].join.call(arguments, '-').toLowerCase().replace(' ', '-')
+    }
+
+    return view
+})()
+
+// define exchanges and products
+// add cryptofacilities.com and deribit.com
+var exchanges = {
+    okcoin: {
+        name: 'OKCoin',
+        products: {
+            quarterlies: 'Quarterlies',
+            weeklies: 'Weeklies',
+            biWeeklies: 'Bi-Weeklies'
+        }
+    },
+    bitmex: {
+        name: 'BitMex',
+        products: {
+            swap: 'Perpetual Swap',
+            quarterlies: 'Quarterlies'
+        }
     }
 }
 
-function updateAmounts(ccy, type, amount) {
+// build the UI
+forEach(exchanges, function (key, exchange) {
+    view.newExchange(exchange.name)
+    forEach(exchange.products, function (key, product) {
+        view.newProduct(exchange.name, product)
+    })
+})
 
-    var index = getIndex(ccy),
-        diff = amount - index,
-        delta = diff / index * 100
+/* Set onclick events */
 
-    updateCell(ccy + '-price-' + type, amount)
-    updateCell(ccy + '-diff-' + type, diff)
-    updateCell(ccy + '-perc-' + type, delta)
+function clearMinValues() {
+    storage.unset(/min/)
 }
 
-function updateCell(spanId, newValue) {
-    var value = getValue(spanId)
-    setValue(spanId, newValue)
-    setMinMaxValue(spanId, newValue)
-    setValueStyle(spanId, value, newValue)
+function clearMaxValues() {
+    storage.unset(/max/)
 }
 
-function updatePageTitle() {
-    var spot = getSpotBtcCny() || 0,
-        index = getIndex('btc') || 1
-        quarterly = getQuarterlyBtc() || 0,
-        diff = quarterly - index,
-        delta = diff / index * 100
-    document.title = spot.toFixed(2) + ' • ' + quarterly.toFixed(2) + ' • ' + diff.toFixed(2) + ' • ' + delta.toFixed(2) + '%'
+function clearAllValues() {
+    storage.unset(/min|max/)
 }
 
-function setValue(spanId, value, store) {
+ui.id('clear-min').onclick = clearMinValues
+ui.id('clear-max').onclick = clearMaxValues
+ui.id('clear-all').onclick = clearAllValues
 
-    if (store != false) store = true
-
-    document.getElementById(spanId).textContent = value.toFixed(2)
-    document.getElementById(spanId).setAttribute('exact-value', value)
-
-    if (store && spanId.match(/min|max/)) {
-        storeValue(spanId, value)
+// helper to loop through an object's properties
+function forEach(obj, fn) {
+    for (var key in obj) {
+        if (obj.hasOwnProperty(key)) {
+            fn(key, obj[key])
+        }
     }
-}
-
-function setMinMaxValue(spanId, value) {
-
-    var min = getStoredValue(spanId + '-min', Infinity),
-        max = getStoredValue(spanId + '-max', -Infinity)
-
-    if (value < min) {
-        setValue(spanId + '-min', value)
-    }
-    if (value > max) {
-        setValue(spanId + '-max', value)
-    }
-}
-
-function setValueStyle(spanId, value, newValue) {
-
-    var span = document.getElementById(spanId)
-    span.style.fontSize = '16px'
-
-    if (newValue > value) {
-        span.style.color = 'green'
-    }
-    else if (newValue < value) {
-        span.style.color = 'red'
-    }
-}
-
-function getIndex(ccy) {
-    return getValue(ccy + '-price-index')
-}
-
-function getSpotBtcCny() {
-    return getValue('btc-price-cny')
-}
-
-function getQuarterlyBtc() {
-    return getValue('btc-price-quarterly')
-}
-
-function getValue(spanId, defaultValue) {
-    return parseFloat(document.getElementById(spanId).getAttribute('exact-value')) || defaultValue
 }

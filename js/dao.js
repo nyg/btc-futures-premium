@@ -1,45 +1,30 @@
-function loadMinMaxValues() {
-    if (typeof Storage !== "undefined") {
-        for (var i = 0; i < localStorage.length; ++i) {
-            var key = localStorage.key(i)
-            if (key.match(/ltc|btc/)) {
-                setValue(key, parseFloat(localStorage.getItem(key)), false)
+var storage = (function () {
+
+    var storage = {},
+        isSupported = typeof Storage !== "undefined"
+
+    storage.get = function (key) {
+        if (isSupported) {
+            return localStorage.getItem(key)
+        }
+    }
+
+    storage.set = function (key, value) {
+        if (isSupported) {
+            localStorage.setItem(key, value)
+        }
+    }
+
+    storage.unset = function (regex) {
+        if (isSupported) {
+            for (var i = localStorage.length - 1; i >= 0; --i) {
+                var key = localStorage.key(i)
+                if (key.match(regex)) {
+                    localStorage.removeItem(key)
+                }
             }
         }
     }
-}
 
-function storeValue(spanId, value) {
-    if (typeof Storage !== "undefined") {
-        localStorage.setItem(spanId, value)
-    }
-}
-
-function getStoredValue(spanId, defaultValue) {
-    if (typeof Storage !== "undefined") {
-        return localStorage.getItem(spanId) || defaultValue
-    }
-}
-
-function clearMinValues() {
-    clearValues(/min/)
-}
-
-function clearMaxValues() {
-    clearValues(/max/)
-}
-
-function clearAllValues() {
-    clearValues(/min|max/)
-}
-
-function clearValues(regex) {
-    if (typeof Storage !== "undefined") {
-        for (var i = localStorage.length - 1; i >= 0; --i) {
-            var key = localStorage.key(i)
-            if (key.match(regex)) {
-                localStorage.removeItem(key)
-            }
-        }
-    }
-}
+    return storage
+})()
