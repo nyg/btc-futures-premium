@@ -1,4 +1,4 @@
-# okcoin-futures
-Shows OKCoin futures premium compared to the futures index.
+# btc-futures-premium
+Show the premium for OKCoin and BitMex Bitcoin futures.
 
-Demo @ https://nyg.github.io/okcoin-futures
+Demo @ https://nyg.github.io/btc-futures-premium
