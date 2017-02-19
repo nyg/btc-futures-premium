@@ -1,0 +1,11 @@
+.links, a {
+    font-size: 10px;
+}
+
+a {
+    text-decoration: none;
+}
+
+a:hover {
+    text-decoration: underline;
+}

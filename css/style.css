@@ -1,8 +1,5 @@
-html, body {
-  height: 100%;
-  font-family: Menlo, monospace;
-  display: flex;
-  flex-flow: column;
+body {
+    font-family: Menlo, monospace;
 }
 
 h1 {
@@ -43,34 +40,6 @@ th, td {
 
 }
 
-/* Flex */
-
-.fx-mmc-main {
-    display: flex;
-    flex-direction: column;
-}
-
-.fx-mmc-max, .fx-mmc-min, .fx-mmc-val {
-    display: flex;
-    justify-content: flex-end;
-}
-
-.fx-mmc-val {
-    font-size: 18px;
-    padding-top: 5px;
-    padding-bottom: 5px;
-}
-
-.fx-mmc-max, .fx-mmc-min {
-    font-size: 10px;
-}
-
-/* Footer */
-
-.flex {
-    flex: 1 1 auto;
-}
-
 p {
     text-align: center;
 }
@@ -83,16 +52,4 @@ p {
     font-size: 13px;
     border-radius: 10px;
     background-color: #FFFACD;
-}
-
-.links, a {
-    font-size: 10px;
-}
-
-a {
-    text-decoration: none;
-}
-
-a:hover {
-    text-decoration: underline;
 }

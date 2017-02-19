@@ -1,3 +1,9 @@
 [submodule "js/okcoin-api"]
 	path = js/okcoin-api
 	url = https://github.com/nyg/okcoin-api.git
+[submodule "js/js-ui"]
+	path = js/js-ui
+	url = https://github.com/nyg/js-ui.git
+[submodule "js/js-storage"]
+	path = js/js-storage
+	url = https://github.com/nyg/js-storage.git

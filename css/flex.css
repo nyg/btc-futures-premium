@@ -1,0 +1,32 @@
+html, body {
+    height: 100%;
+}
+
+body {
+    display: flex;
+    flex-flow: column;
+}
+
+.fx-mmc-main {
+    display: flex;
+    flex-direction: column;
+}
+
+.fx-mmc-max, .fx-mmc-min, .fx-mmc-val {
+    display: flex;
+    justify-content: flex-end;
+}
+
+.fx-mmc-val {
+    font-size: 18px;
+    padding-top: 5px;
+    padding-bottom: 5px;
+}
+
+.fx-mmc-max, .fx-mmc-min {
+    font-size: 10px;
+}
+
+.fx-space {
+    flex: 1;
+}
