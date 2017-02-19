@@ -8,47 +8,35 @@ new OKCoin('com', {
     ok_sub_futureusd_btc_ticker_quarter: handleTicker
 }).start()
 
-var okcoin = exchanges.okcoin
+var okcoin = exchanges.okcoin,
+    channelToProduct = {
+        this_week: okcoin.products.weeklies,
+        next_week: okcoin.products.biWeeklies,
+        quarter: okcoin.products.quarterlies
+    }
 
 function handleIndex(message) {
     view.updateIndex(okcoin.name, message.data.futureIndex)
 }
 
 function handleTrade(message) {
-
     message.data.forEach(function (trade) {
-
-        var price = parseFloat(trade[1])
-
-        if (message.channel.match(/this_week/)) {
-            view.update(okcoin.name, 'weeklies', 'price', price)
-        }
-        else if (message.channel.match(/next_week/)) {
-            view.update(okcoin.name, 'bi-weeklies', 'price', price)
-        }
-        else if (message.channel.match(/quarter/)) {
-            view.update(okcoin.name, 'quarterlies', 'price', price)
-        }
-        else {
-            console.log('Unknown channel: ' + message.channel)
-        }
+        view.update(okcoin.name, getProduct(message.channel), 'price', parseFloat(trade[1]))
     })
 }
 
 function handleTicker(message) {
+    var volume = parseFloat(message.data.vol) / 10 // in k$
+    view.updateVolume(okcoin.name, getProduct(message.channel), volume)
+}
 
-    var volume = parseFloat(message.data.vol) / 10 // in K$
+function getProduct(channel) {
 
-    if (message.channel.match(/this_week/)) {
-        view.update(okcoin.name, 'weeklies', 'volume', volume)
-    }
-    else if (message.channel.match(/next_week/)) {
-        view.update(okcoin.name, 'bi-weeklies', 'volume', volume)
-    }
-    else if (message.channel.match(/quarter/)) {
-        view.update(okcoin.name, 'quarterlies', 'volume', volume)
-    }
-    else {
-        console.log('Unknown channel: ' + message.channel)
-    }
+    forEach(channelToProduct, function (key, value) {
+        if (channel.match(new RegExp(key))) {
+            return value
+        }
+    })
+
+    console.log('Unknown channel: ' + message.channel)
 }

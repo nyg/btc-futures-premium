@@ -41,40 +41,49 @@ var view = (function () {
 
     view.update = function (exchange, product, property, newValue) {
 
-        // update volume, price or index
-        if (property == 'volume') {
-            var id = jnid(exchange, product, property),
-                oldValue = getValue(id)
-            setVolumeValue(id, newValue)
-            setValueStyle(id, oldValue, newValue)
-        }
-        else {
-            var id = jnid(exchange, product, property, 'value'),
-                oldValue = getValue(id)
+        var id = jnid(exchange, product, property, 'value'),
+            oldValue = getValue(id)
 
-            setValue(id, newValue)
-            setValueStyle(id, oldValue, newValue)
-            setMinMaxValue(jnid(exchange, product, property), newValue)
-        }
+        setValue(id, newValue)
+        setValueStyle(id, oldValue, newValue)
+        setMinMaxValue(jnid(exchange, product, property), newValue)
 
-        // update delta & deltap
-        if (property == 'price' || property == 'index') {
-
-            var index = getValue(jnid(exchange, 'index')),
-                price = getValue(jnid(exchange, product, 'price', 'value')),
-                delta = price - index
-
-            view.update(exchange, product, 'delta', delta)
-            view.update(exchange, product, 'deltap', delta / index * 100)
+        if (property == 'price') {
+            updateDelta(exchange, product)
         }
     }
 
     view.updateIndex = function (exchange, newValue) {
+
         var id = jnid(exchange, 'index'),
             oldValue = getValue(id)
+
         setValue(id, newValue)
         setValueStyle(id, oldValue, newValue)
         setMinMaxValue(id, newValue)
+
+        forEach(exchanges[exchange.toLowerCase()].products, function (key, value) {
+            updateDelta(exchange, value)
+        })
+    }
+
+    view.updateVolume = function (exchange, product, newValue) {
+
+        var id = jnid(exchange, product, 'volume'),
+            oldValue = getValue(id)
+
+        setVolumeValue(id, newValue)
+        setValueStyle(id, oldValue, newValue)
+    }
+
+    function updateDelta(exchange, product) {
+
+        var index = getValue(jnid(exchange, 'index')),
+            price = getValue(jnid(exchange, product, 'price', 'value')),
+            delta = price - index
+
+        view.update(exchange, product, 'delta', delta)
+        view.update(exchange, product, 'deltap', delta / index * 100)
     }
 
     function minMaxCell (parentId, name) {
@@ -189,12 +198,3 @@ function clearAllValues() {
 ui.id('clear-min').onclick = clearMinValues
 ui.id('clear-max').onclick = clearMaxValues
 ui.id('clear-all').onclick = clearAllValues
-
-// helper to loop through an object's properties
-function forEach(obj, fn) {
-    for (var key in obj) {
-        if (obj.hasOwnProperty(key)) {
-            fn(key, obj[key])
-        }
-    }
-}
