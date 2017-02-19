@@ -32,11 +32,17 @@ function handleTicker(message) {
 
 function getProduct(channel) {
 
+    var product
     forEach(channelToProduct, function (key, value) {
         if (channel.match(new RegExp(key))) {
-            return value
+            product = value
         }
     })
 
-    console.log('Unknown channel: ' + message.channel)
+    if (product !== undefined) {
+        return product
+    }
+    else {
+        console.log('Unknown channel: ' + channel)
+    }
 }
