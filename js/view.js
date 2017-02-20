@@ -104,12 +104,17 @@ var view = (function () {
     // updates the span with given id
     function setValue(id, value, store) {
 
-        ui.id(id).textContent = value.toFixed(2)
+        var parsedValue = parseFloat(value)
+        if (isNaN(parsedValue) || !isFinite(parsedValue)) {
+            return
+        }
+
+        ui.id(id).textContent = parsedValue.toFixed(2)
         ui.id(id).setAttribute('exact-value', value)
 
         // only store if it's a min/max value
         if (store != false && id.match(/min|max/)) {
-            storage.set(id, value)
+            storage.set(id, parsedValue)
         }
     }
 
@@ -136,18 +141,20 @@ var view = (function () {
             min = storage.get(minId),
             max = storage.get(maxId)
 
-        if (!getValue(minId) || min == null || value < min) {
+        if (min == null || value < min) {
             setValue(minId, value)
         }
 
-        if (!getValue(maxId) || max == null || value > max) {
+        if (max == null || value > max) {
             setValue(maxId, value)
         }
     }
 
-    // joins the given arguments, used for HTML ids
-    function jnid() {
-        return [].join.call(arguments, '-').toLowerCase().replace(' ', '-')
+    view.restoreMinMaxValues = function (id) {
+        var minId = jnid(id, 'min'),
+            maxId = jnid(id, 'max')
+        setValue(minId, storage.get(minId), false)
+        setValue(maxId, storage.get(maxId), false)
     }
 
     return view
@@ -175,11 +182,22 @@ var exchanges = {
 
 // build the UI
 forEach(exchanges, function (key, exchange) {
+
     view.newExchange(exchange.name)
+    view.restoreMinMaxValues(jnid(exchange.name, 'index'))
+
     forEach(exchange.products, function (key, product) {
-        view.newProduct(exchange.name, product)
+        view.newProduct(exchange.name, product);
+        [ 'price', 'delta', 'deltap' ].forEach(function (e) {
+            view.restoreMinMaxValues(jnid(exchange.name, product, e))
+        })
     })
 })
+
+// joins the given arguments, used for HTML ids
+function jnid() {
+    return [].join.call(arguments, '-').toLowerCase().replace(' ', '-')
+}
 
 /* Set onclick events */
 
