@@ -1,6 +1,7 @@
 var view = (function () {
 
-    var view = {}
+    var view = {},
+        volumes = []
 
     view.newExchange = function (name) {
 
@@ -18,6 +19,7 @@ var view = (function () {
         table.appendChild(ui.tr([
             ui.th(),
             ui.th('Vol 24h k$'),
+            ui.th(),
             ui.th('Last'),
             ui.th('±'),
             ui.th('%')
@@ -30,11 +32,12 @@ var view = (function () {
 
         var product = ui.th(name),
             baseId = jnid(exchange, name),
-            volume = ui.td(null, jnid(baseId, 'volume'))
+            volume = ui.td(null, jnid(baseId, 'volume')),
+            volumep = ui.td(null, jnid(baseId, 'volumep')),
             price = minMaxCell(baseId, 'price'),
             delta = minMaxCell(baseId, 'delta'),
             deltap = minMaxCell(baseId, 'deltap'),
-            tr = ui.tr([ product, volume, price, delta, deltap ])
+            tr = ui.tr([ product, volume, volumep, price, delta, deltap ])
 
         ui.id(jnid(exchange)).appendChild(tr)
     }
@@ -74,6 +77,28 @@ var view = (function () {
 
         setVolumeValue(id, newValue)
         setValueStyle(id, oldValue, newValue)
+
+        computePercentage()
+    }
+
+    function computePercentage() {
+
+        var totalVolume = 0
+        forEach(exchanges, function (key, exchange) {
+            forEach(exchange.products, function (key, product) {
+                totalVolume += parseInt(ui.id(jnid(exchange.name, product, 'volume')).textContent)
+            })
+        })
+
+        forEach(exchanges, function (key, exchange) {
+            forEach(exchange.products, function (key, product) {
+                var volume = parseInt(ui.id(jnid(exchange.name, product, 'volume')).textContent),
+                    percentage = 100 * volume / totalVolume
+                if (!isNaN(percentage)) {
+                    ui.id(jnid(exchange.name, product, 'volumep')).textContent = percentage.toFixed(1) + '%'
+                }
+            })
+        })
     }
 
     function updateDelta(exchange, product) {

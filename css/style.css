@@ -43,7 +43,11 @@ th, td {
     width: 120px;
     padding: 10px;
     text-align: right;
+}
 
+tr td:nth-child(3), tr th:nth-child(3) {
+    width: inherit;
+    font-size: 10px;
 }
 
 p {
