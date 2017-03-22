@@ -200,7 +200,8 @@ var exchanges = {
         name: 'BitMex',
         products: {
             swap: 'Perpetual Swap',
-            quarterlies: 'Quarterlies'
+            quarterlies: 'Quarterlies March',
+            quarterliesNew: 'Quarterlies June'
         }
     }
 }
