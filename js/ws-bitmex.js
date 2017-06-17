@@ -1,9 +1,9 @@
-var bitmexWs = new WebSocket('wss://www.bitmex.com/realtime?subscribe=trade:XBTM17,trade:XBTUSD,trade:.XBT,instrument:XBTUSD,instrument:XBTM17'),
+var bitmexWs = new WebSocket('wss://www.bitmex.com/realtime?subscribe=trade:XBTM17,trade:XBTU17,trade:XBTUSD,trade:.XBT,instrument:XBTUSD,instrument:XBTM17,instrument:XBTU17'),
     bitmex = exchanges.bitmex,
     symbolToProduct = {
         XBTUSD: bitmex.products.swap,
-        //XBTH17: bitmex.products.quarterlies,
-        XBTM17: bitmex.products.quarterlies
+        XBTM17: bitmex.products.quarterlies,
+        XBTU17: bitmex.products.quarterliesNew
     }
 
 bitmexWs.onmessage = function (message) {
