@@ -1,9 +1,9 @@
-var view = (function () {
+var view = (() => {
 
     var view = {},
         volumes = []
 
-    view.newExchange = function (name) {
+    view.newExchange = (name) => {
 
         var table = ui.table(jnid(name)),
             caption = ui.caption(name + ' (index: ')
@@ -28,7 +28,7 @@ var view = (function () {
         ui.id('exchanges').appendChild(table)
     }
 
-    view.newProduct = function (exchange, name) {
+    view.newProduct = (exchange, name) => {
 
         var product = ui.th(name),
             baseId = jnid(exchange, name),
@@ -42,7 +42,7 @@ var view = (function () {
         ui.id(jnid(exchange)).appendChild(tr)
     }
 
-    view.update = function (exchange, product, property, newValue) {
+    view.update = (exchange, product, property, newValue) => {
 
         var id = jnid(exchange, product, property, 'value'),
             oldValue = getValue(id)
@@ -56,7 +56,7 @@ var view = (function () {
         }
     }
 
-    view.updateIndex = function (exchange, newValue) {
+    view.updateIndex = (exchange, newValue) => {
 
         var id = jnid(exchange, 'index'),
             oldValue = getValue(id)
@@ -65,12 +65,12 @@ var view = (function () {
         setValueStyle(id, oldValue, newValue)
         setMinMaxValue(id, newValue)
 
-        forEach(exchanges[exchange.toLowerCase()].products, function (key, value) {
+        forEach(exchanges[exchange.toLowerCase()].products, (key, value) => {
             updateDelta(exchange, value)
         })
     }
 
-    view.updateVolume = function (exchange, product, newValue) {
+    view.updateVolume = (exchange, product, newValue) => {
 
         var id = jnid(exchange, product, 'volume'),
             oldValue = getValue(id)
@@ -81,18 +81,41 @@ var view = (function () {
         computePercentage()
     }
 
+    view.restoreMinMaxValues = id => {
+        var minId = jnid(id, 'min'),
+            maxId = jnid(id, 'max')
+        setValue(minId, storage.get(minId), false)
+        setValue(maxId, storage.get(maxId), false)
+    }
+
+    view.buildUI = () => {
+
+        forEach(exchanges, (key, exchange) => {
+
+            view.newExchange(exchange.name)
+            view.restoreMinMaxValues(jnid(exchange.name, 'index'))
+
+            forEach(exchange.products, (key, product) => {
+                view.newProduct(exchange.name, product);
+                [ 'price', 'delta', 'deltap' ].forEach(e => {
+                    view.restoreMinMaxValues(jnid(exchange.name, product, e))
+                })
+            })
+        })
+    }
+
     function computePercentage() {
 
         var totalVolume = 0
-        forEach(exchanges, function (key, exchange) {
-            forEach(exchange.products, function (key, product) {
-                totalVolume += parseInt(ui.id(jnid(exchange.name, product, 'volume')).textContent)
+        forEach(exchanges, (key, exchange) => {
+            forEach(exchange.products, (key, product) => {
+                totalVolume += getIntValue(jnid(exchange.name, product, 'volume'))
             })
         })
 
-        forEach(exchanges, function (key, exchange) {
-            forEach(exchange.products, function (key, product) {
-                var volume = parseInt(ui.id(jnid(exchange.name, product, 'volume')).textContent),
+        forEach(exchanges, (key, exchange) => {
+            forEach(exchange.products, (key, product) => {
+                var volume = getIntValue(jnid(exchange.name, product, 'volume')),
                     percentage = 100 * volume / totalVolume
                 if (!isNaN(percentage)) {
                     ui.id(jnid(exchange.name, product, 'volumep')).textContent = percentage.toFixed(1) + '%'
@@ -119,6 +142,10 @@ var view = (function () {
             min = ui.span(null, jnid(baseId, 'min'), 'fx-mmc-min')
 
         return ui.td([ ui.span([ max, value, min ], baseId, 'fx-mmc-main') ])
+    }
+
+    function getIntValue(id) {
+        return parseInt(ui.id(id).textContent.replace(/,/g, ''))
     }
 
     // gets the exact value from the span with given id
@@ -175,58 +202,15 @@ var view = (function () {
         }
     }
 
-    view.restoreMinMaxValues = function (id) {
-        var minId = jnid(id, 'min'),
-            maxId = jnid(id, 'max')
-        setValue(minId, storage.get(minId), false)
-        setValue(maxId, storage.get(maxId), false)
+    // joins the given arguments, used for HTML ids
+    function jnid() {
+        return [].join.call(arguments, '-').toLowerCase().replace(' ', '-')
     }
 
     return view
 })()
 
-// define exchanges and products
-// add cryptofacilities.com and deribit.com
-var exchanges = {
-    okcoin: {
-        name: 'OKCoin',
-        products: {
-            quarterlies: 'Quarterlies',
-            weeklies: 'Weeklies',
-            biWeeklies: 'Bi-Weeklies'
-        }
-    },
-    bitmex: {
-        name: 'BitMex',
-        products: {
-            swap: 'Perpetual Swap',
-            quarterlies: 'Quarterlies June',
-            quarterliesNew: 'Quarterlies Sept'
-        }
-    }
-}
-
-// build the UI
-forEach(exchanges, function (key, exchange) {
-
-    view.newExchange(exchange.name)
-    view.restoreMinMaxValues(jnid(exchange.name, 'index'))
-
-    forEach(exchange.products, function (key, product) {
-        view.newProduct(exchange.name, product);
-        [ 'price', 'delta', 'deltap' ].forEach(function (e) {
-            view.restoreMinMaxValues(jnid(exchange.name, product, e))
-        })
-    })
-})
-
-// joins the given arguments, used for HTML ids
-function jnid() {
-    return [].join.call(arguments, '-').toLowerCase().replace(' ', '-')
-}
-
-/* Set onclick events */
-
+// Add onclick events on min/max buttons
 function clearMinValues() {
     storage.unset(/min/)
 }

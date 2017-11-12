@@ -1,39 +1,48 @@
-new OKCoin()
-.setChannels({
-    ok_sub_futureusd_btc_index: handleIndex,
-    ok_sub_futureusd_btc_trade_this_week: handleTrade,
-    ok_sub_futureusd_btc_trade_next_week: handleTrade,
-    ok_sub_futureusd_btc_trade_quarter: handleTrade,
-    ok_sub_future_btc_ticker_this_week: handleTicker,
-    ok_sub_future_btc_ticker_next_week: handleTicker,
-    ok_sub_future_btc_ticker_quarter: handleTicker
-})
-.isFutures()
-.start()
-
-var okcoin = exchanges.okcoin,
+var okcoinExchange = {
+        name: 'OKCoin',
+        products: {
+            quarterlies: 'Quarterlies',
+            weeklies: 'Weeklies',
+            biWeeklies: 'Bi-Weeklies'
+        }
+    },
     channelToProduct = {
-        this_week: okcoin.products.weeklies,
-        next_week: okcoin.products.biWeeklies,
-        quarter: okcoin.products.quarterlies
+        this_week: okcoinExchange.products.weeklies,
+        next_week: okcoinExchange.products.biWeeklies,
+        quarter: okcoinExchange.products.quarterlies
     }
+
+function startOKCoinWebSocket() {
+    new OKCoin()
+        .setChannels({
+            ok_sub_futureusd_btc_index: handleIndex,
+            ok_sub_futureusd_btc_trade_this_week: handleTrade,
+            ok_sub_futureusd_btc_trade_next_week: handleTrade,
+            ok_sub_futureusd_btc_trade_quarter: handleTrade,
+            ok_sub_future_btc_ticker_this_week: handleTicker,
+            ok_sub_future_btc_ticker_next_week: handleTicker,
+            ok_sub_future_btc_ticker_quarter: handleTicker
+        })
+        .isFutures()
+        .start()
+}
 
 // Index data
 function handleIndex(message) {
-    view.updateIndex(okcoin.name, message.data.futureIndex)
+    view.updateIndex(okcoinExchange.name, message.data.futureIndex)
 }
 
 // Last trade data
 function handleTrade(message) {
     message.data.forEach(function (trade) {
-        view.update(okcoin.name, getProduct(message.channel), 'price', parseFloat(trade[1]))
+        view.update(okcoinExchange.name, getProduct(message.channel), 'price', parseFloat(trade[1]))
     })
 }
 
 // Volume data
 function handleTicker(message) {
     var volume = parseFloat(message.data.vol) / 10 // in k$
-    view.updateVolume(okcoin.name, getProduct(message.channel), volume)
+    view.updateVolume(okcoinExchange.name, getProduct(message.channel), volume)
 }
 
 function getProduct(channel) {
