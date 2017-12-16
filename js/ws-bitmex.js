@@ -1,22 +1,20 @@
-function getFutures() {
-    return nygFetch
-        .fetchJSON('https://www.bitmex.com/api/v1/instrument?symbol=XBT:quarterly&reverse=false', true)
-        .then(json => {
-            // TODO
-            return [ json.symbol ]
-        })
-}
-
 var bitmexExchange = {
         name: 'BitMEX',
         products: {
             XBTUSD: 'Perpetual Swap'
         }
-    }
+    },
+    futures = undefined
+
+function getFutures() {
+    return nygFetch
+        .fetchJSON('https://www.bitmex.com/api/v1/instrument?filter=%7B%22rootSymbol%22%3A%22XBT%22%2C%22state%22%3A%22Open%22%2C%22typ%22%3A%20%22FFCCSX%22%7D&reverse=false', true)
+        .then(json => json.json.map(e => e.symbol))
+}
 
 async function buildBitmexExchange() {
 
-    var futures = await getFutures()
+    futures = await getFutures()
     for (future of futures) {
         bitmexExchange.products[future] = getSymbolName(future)
     }
@@ -26,7 +24,7 @@ async function buildBitmexExchange() {
 
 function startBitMEXWebSocket() {
 
-    var ws = new WebSocket('wss://www.bitmex.com/realtime?subscribe=trade:.XBT,trade:XBT:quarterly,trade:XBT:perpetual,instrument:XBT:perpetual,instrument:XBT:quarterly')
+    var ws = new WebSocket(`wss://www.bitmex.com/realtime?subscribe=trade:.XBT,trade:XBT:perpetual,instrument:XBT:perpetual,${createFuturesWSString(futures)}`)
     ws.onmessage = function (message) {
 
         var data = JSON.parse(message.data)
@@ -54,11 +52,11 @@ function startBitMEXWebSocket() {
     }
 }
 
-function getSymbolName(symbol) {
+function createFuturesWSString(symbols) {
+    return symbols.map(symbol => `trade:${symbol},instrument:${symbol}`).join(',')
+}
 
-    // if (symbol == 'XBTUSD') {
-    //     return 'Perpetual Swap'
-    // }
+function getSymbolName(symbol) {
 
     var matched = symbol.match(/XBT([A-Z])(\d\d)/)
     if (matched.length == 3) {
@@ -82,7 +80,6 @@ function getMonth(code) {
         case 'V': return 'October'
         case 'X': return 'November'
         case 'Z': return 'December'
+        default: return 'Unknown month code'
     }
-
-    return 'Unknown month code'
 }
