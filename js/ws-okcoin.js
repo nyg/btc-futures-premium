@@ -2,8 +2,8 @@ var okcoinExchange = {
         name: 'OKCoin',
         products: {
             quarterlies: 'Quarterlies',
-            weeklies: 'Weeklies',
             biWeeklies: 'Bi-Weeklies'
+            weeklies: 'Weeklies',
         }
     },
     channelToProduct = {
