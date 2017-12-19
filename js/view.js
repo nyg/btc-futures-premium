@@ -116,9 +116,9 @@ var view = (() => {
         forEach(exchanges, (key, exchange) => {
             forEach(exchange.products, (key, product) => {
                 var volume = getIntValue(jnid(exchange.name, product, 'volume')),
-                    percentage = 100 * volume / totalVolume
+                    percentage = volume / totalVolume
                 if (!isNaN(percentage)) {
-                    ui.id(jnid(exchange.name, product, 'volumep')).textContent = percentage.toFixed(1) + '%'
+                    ui.id(jnid(exchange.name, product, 'volumep')).textContent = numeral(percentage).format('0.0%')
                 }
             })
         })
@@ -161,7 +161,7 @@ var view = (() => {
             return
         }
 
-        ui.id(id).textContent = parsedValue.toFixed(2)
+        ui.id(id).textContent = numeral(parsedValue).format('0,0.00')
         ui.id(id).setAttribute('exact-value', value)
 
         // only store if it's a min/max value
@@ -171,7 +171,7 @@ var view = (() => {
     }
 
     function setVolumeValue(id, value) {
-        ui.id(id).textContent = Number(value.toFixed()).toLocaleString()
+        ui.id(id).textContent = numeral(value).format('0,0')
     }
 
     // colors the span with given id
