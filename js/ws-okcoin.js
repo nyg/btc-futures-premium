@@ -13,17 +13,14 @@ var okcoinExchange = {
     }
 
 function startOKCoinWebSocket() {
-    new OKCoin()
-        .setChannels({
-            ok_sub_futureusd_btc_index: handleIndex,
-            ok_sub_futureusd_btc_trade_this_week: handleTrade,
-            ok_sub_futureusd_btc_trade_next_week: handleTrade,
-            ok_sub_futureusd_btc_trade_quarter: handleTrade,
-            ok_sub_futureusd_btc_ticker_this_week: handleTicker,
-            ok_sub_futureusd_btc_ticker_next_week: handleTicker,
-            ok_sub_futureusd_btc_ticker_quarter: handleTicker
-        })
-        .isFutures()
+    new OKCoin('wss://real.okex.com:10441/websocket')
+        .addChannelHandler('ok_sub_futureusd_btc_index', handleIndex)
+        .addChannelHandler('ok_sub_futureusd_btc_trade_this_week', handleTrade)
+        .addChannelHandler('ok_sub_futureusd_btc_trade_next_week', handleTrade)
+        .addChannelHandler('ok_sub_futureusd_btc_trade_quarter', handleTrade)
+        .addChannelHandler('ok_sub_futureusd_btc_ticker_this_week', handleTicker)
+        .addChannelHandler('ok_sub_futureusd_btc_ticker_next_week', handleTicker)
+        .addChannelHandler('ok_sub_futureusd_btc_ticker_quarter', handleTicker)
         .start()
 }
 
