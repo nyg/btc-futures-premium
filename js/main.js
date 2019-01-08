@@ -1,5 +1,6 @@
 // define exchanges and their products
 var exchanges = {
+    bitmex: null,
     okcoin: okcoinExchange
 }
 
