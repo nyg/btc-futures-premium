@@ -10,13 +10,12 @@ function getFutures() {
     return nygFetch
         .fetchJSON('https://www.bitmex.com/api/v1/instrument?filter=%7B%22rootSymbol%22%3A%22XBT%22%2C%22state%22%3A%22Open%22%2C%22typ%22%3A%20%22FFCCSX%22%7D&reverse=false', true)
         .then(json => {
-            // when there is only one future
-            if (json.hasOwnProperty('symbol')) {
-                return [ json.symbol ]
+            // more than on future
+            if (Array.isArray(json)) {
+                return json.map(e => e.symbol)
             }
-            // when there are two
             else {
-                return json.json.map(e => e.symbol)
+                return [ json.symbol ]
             }
         })
 }
